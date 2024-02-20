@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AddTaskForm from "./components/AddTaskForm.jsx";
+import TaskList from "./components/TaskList.jsx";
 
 // "Tuesday, October 20": today's date, worked out once when the page loads
 const today = new Date().toLocaleDateString("en-US", {
@@ -34,6 +35,17 @@ function App() {
     setTasks((current) => [createTask(title), ...current]);
   }
 
+  function toggleTask(id) {
+    // map() makes a new array: a NEW object for the task that changed
+    // ({ ...task, done: !task.done }), and the same objects for the rest
+    setTasks((current) =>
+      current.map((task) => (task.id === id ? { ...task, done: !task.done } : task))
+    );
+  }
+
+  // Worked out from the tasks on every render, never stored
+  const doneCount = tasks.filter((task) => task.done).length;
+
   return (
     <div className="app">
       <header className="app__header">
@@ -48,27 +60,15 @@ function App() {
         </section>
 
         <section className="todo-card__section" aria-label="Tasks">
-          {tasks.length === 0 ? (
-            <div className="empty">
-              <span className="empty__icon" aria-hidden="true">
-                🎉
-              </span>
-              <p>Nothing to do yet. Add your first task above.</p>
-            </div>
-          ) : (
-            // A plain list for now; Step 4 turns each one into a real task
-            <ul>
-              {tasks.map((task) => (
-                <li key={task.id}>{task.title}</li>
-              ))}
-            </ul>
-          )}
+          <TaskList tasks={tasks} onToggle={toggleTask} />
         </section>
 
         <footer className="todo-card__section todo-card__footer">
-          {/* Worked out from the tasks every time: never stored, never stale */}
-          <p>
-            {tasks.length} task{tasks.length === 1 ? "" : "s"}
+          {/* aria-live: screen readers hear the new count when a task is ticked */}
+          <p aria-live="polite">
+            {tasks.length === 0
+              ? "No tasks"
+              : `${doneCount} of ${tasks.length} done`}
           </p>
         </footer>
       </main>

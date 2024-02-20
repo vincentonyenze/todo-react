@@ -1,0 +1,33 @@
+.task {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.task:last-child {
+  border-bottom: none;
+}
+
+.task__checkbox {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--color-success);
+  cursor: pointer;
+}
+
+.task__title {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere; /* long words wrap instead of overflowing */
+  cursor: pointer;
+}
+
+/* Done: faded and crossed out, but still readable */
+.task--done .task__title {
+  color: var(--color-muted);
+  text-decoration: line-through;
+}
