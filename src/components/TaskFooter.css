@@ -1,0 +1,33 @@
+/* A button that looks like a link */
+.link-btn {
+  padding: 0.25rem 0.4rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link-btn:hover {
+  color: var(--color-text);
+}
+
+.link-btn--danger {
+  color: var(--color-danger);
+}
+
+.link-btn--danger:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  color: var(--color-text);
+}

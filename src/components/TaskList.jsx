@@ -2,7 +2,7 @@ import TaskItem from "./TaskItem.jsx";
 
 // The list of tasks, or a friendly message when there are none.
 // It passes each task, and the functions to change it, on to TaskItem.
-function TaskList({ tasks, onToggle }) {
+function TaskList({ tasks, onToggle, onDelete }) {
   if (tasks.length === 0) {
     return (
       <div className="empty">
@@ -17,7 +17,7 @@ function TaskList({ tasks, onToggle }) {
   return (
     <ul>
       {tasks.map((task) => (
-        <TaskItem key={task.id} task={task} onToggle={onToggle} />
+        <TaskItem key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
       ))}
     </ul>
   );

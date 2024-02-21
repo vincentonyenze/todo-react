@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AddTaskForm from "./components/AddTaskForm.jsx";
 import TaskList from "./components/TaskList.jsx";
+import TaskFooter from "./components/TaskFooter.jsx";
 
 // "Tuesday, October 20": today's date, worked out once when the page loads
 const today = new Date().toLocaleDateString("en-US", {
@@ -43,6 +44,15 @@ function App() {
     );
   }
 
+  function deleteTask(id) {
+    // filter() keeps every task EXCEPT this one, in a new array
+    setTasks((current) => current.filter((task) => task.id !== id));
+  }
+
+  function clearCompleted() {
+    setTasks((current) => current.filter((task) => !task.done));
+  }
+
   // Worked out from the tasks on every render, never stored
   const doneCount = tasks.filter((task) => task.done).length;
 
@@ -60,17 +70,10 @@ function App() {
         </section>
 
         <section className="todo-card__section" aria-label="Tasks">
-          <TaskList tasks={tasks} onToggle={toggleTask} />
+          <TaskList tasks={tasks} onToggle={toggleTask} onDelete={deleteTask} />
         </section>
 
-        <footer className="todo-card__section todo-card__footer">
-          {/* aria-live: screen readers hear the new count when a task is ticked */}
-          <p aria-live="polite">
-            {tasks.length === 0
-              ? "No tasks"
-              : `${doneCount} of ${tasks.length} done`}
-          </p>
-        </footer>
+        <TaskFooter total={tasks.length} doneCount={doneCount} onClearCompleted={clearCompleted} />
       </main>
 
       <p className="app__footer">Built with React and Vite</p>

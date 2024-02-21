@@ -31,3 +31,33 @@
   color: var(--color-muted);
   text-decoration: line-through;
 }
+
+.task__delete {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  opacity: 0.35;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+
+/* Fully visible when the row is hovered, or the button has focus. It
+   never disappears completely: on phones there's no hover. */
+.task:hover .task__delete,
+.task__delete:focus-visible {
+  opacity: 1;
+}
+
+.task__delete:hover {
+  background: var(--color-danger-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task__delete {
+    transition: none;
+  }
+}
