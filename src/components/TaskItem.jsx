@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { MAX_TITLE_LENGTH } from "./AddTaskForm.jsx";
+import { PRIORITIES, priorityLabel } from "../priorities.js";
 import "./TaskItem.css";
 
-// One task: a checkbox, its title, and buttons to edit or delete it.
-// Nothing changes here: it asks the parent by calling onToggle(id),
-// onEdit(id, title) or onDelete(id). App owns the tasks.
+// One task: a checkbox, its title, its priority, and buttons to edit or
+// delete it. Nothing changes here: it asks the parent by calling
+// onToggle(id), onEdit(id, changes) or onDelete(id). App owns the tasks.
 //
 // checkboxRef: lets the list move focus to this task's checkbox (after
 // the task above it is deleted)
@@ -12,6 +13,7 @@ function TaskItem({ task, onToggle, onEdit, onDelete, checkboxRef }) {
   // Editing is something only THIS row cares about, so the state is here
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(task.title); // the text while editing
+  const [draftPriority, setDraftPriority] = useState(task.priority);
   const [error, setError] = useState("");
 
   // REFS: a way to reach a real element on the page (to focus it), or to
@@ -42,7 +44,8 @@ function TaskItem({ task, onToggle, onEdit, onDelete, checkboxRef }) {
   const errorId = `task-${task.id}-error`;
 
   function startEditing() {
-    setDraft(task.title); // start from the current title
+    setDraft(task.title); // start from the current title and priority
+    setDraftPriority(task.priority);
     setError("");
     setIsEditing(true);
   }
@@ -58,7 +61,10 @@ function TaskItem({ task, onToggle, onEdit, onDelete, checkboxRef }) {
       setError("A task needs a title. (Use 🗑 to delete it.)");
       return;
     }
-    if (cleaned !== task.title) onEdit(task.id, cleaned);
+    // Only tell App when something really changed
+    if (cleaned !== task.title || draftPriority !== task.priority) {
+      onEdit(task.id, { title: cleaned, priority: draftPriority });
+    }
     setIsEditing(false);
   }
 
@@ -87,6 +93,21 @@ function TaskItem({ task, onToggle, onEdit, onDelete, checkboxRef }) {
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? errorId : undefined}
           />
+          <label htmlFor={`${checkboxId}-priority`} className="visually-hidden">
+            Priority
+          </label>
+          <select
+            id={`${checkboxId}-priority`}
+            className="select task__edit-priority"
+            value={draftPriority}
+            onChange={(event) => setDraftPriority(event.target.value)}
+          >
+            {PRIORITIES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <button type="submit" className="task__save">
             Save
           </button>
@@ -120,6 +141,13 @@ function TaskItem({ task, onToggle, onEdit, onDelete, checkboxRef }) {
       <label htmlFor={checkboxId} className="task__title">
         {task.title}
       </label>
+
+      {/* The WORD is shown, not just a colour: people who can't tell red
+          from orange still know which is which */}
+      <span className={`priority priority--${task.priority}`}>
+        <span className="visually-hidden">Priority: </span>
+        {priorityLabel(task.priority)}
+      </span>
 
       {/* The labels name the task, so a screen reader user tabbing
           through hears WHICH one each button is for */}

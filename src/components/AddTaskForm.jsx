@@ -1,13 +1,14 @@
 import { useState } from "react";
+import { DEFAULT_PRIORITY, PRIORITIES } from "../priorities.js";
 import "./AddTaskForm.css";
 
 // Longest task title allowed (the input also stops at this length)
 export const MAX_TITLE_LENGTH = 120;
 
-// The box to type a new task, and the Add button.
+// The box to type a new task, its priority, and the Add button.
 //
 // It doesn't keep a list of tasks: it just tells its parent "add this
-// title" by calling onAdd(title). The parent owns the tasks.
+// task" by calling onAdd(title, priority). The parent owns the tasks.
 //
 // inputRef: the parent can pass a ref to reach the text box, to move focus
 // back here (e.g. after the last task is deleted)
@@ -19,6 +20,8 @@ function AddTaskForm({ onAdd, inputRef }) {
   // or clear it whenever it likes.
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");
+  // A <select> is controlled the same way as a text box: value + onChange
+  const [priority, setPriority] = useState(DEFAULT_PRIORITY);
 
   function handleSubmit(event) {
     event.preventDefault(); // a form would otherwise reload the page
@@ -30,8 +33,10 @@ function AddTaskForm({ onAdd, inputRef }) {
       return;
     }
 
-    onAdd(cleaned);
-    setTitle(""); // ready for the next one (focus stays in the box)
+    onAdd(cleaned, priority);
+    // Ready for the next one (focus stays in the box). The priority is
+    // kept, for when you add several urgent tasks in a row.
+    setTitle("");
     setError("");
   }
 
@@ -58,6 +63,21 @@ function AddTaskForm({ onAdd, inputRef }) {
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? "new-task-error" : undefined}
       />
+      <label htmlFor="new-task-priority" className="visually-hidden">
+        Priority
+      </label>
+      <select
+        id="new-task-priority"
+        className="select add-form__priority"
+        value={priority}
+        onChange={(event) => setPriority(event.target.value)}
+      >
+        {PRIORITIES.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
       <button type="submit" className="add-form__button">
         Add
       </button>

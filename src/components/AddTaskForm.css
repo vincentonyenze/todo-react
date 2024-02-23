@@ -1,7 +1,18 @@
 .add-form {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 0.5rem;
+}
+
+/* Phones: the text box gets its own row, priority and Add go under it */
+@media (max-width: 480px) {
+  .add-form {
+    grid-template-columns: 1fr auto;
+  }
+
+  .add-form__input {
+    grid-column: 1 / -1;
+  }
 }
 
 .add-form__input {
@@ -25,7 +36,7 @@
 }
 
 .add-form__button {
-  padding: 0 1.25rem;
+  padding: 0.75rem 1.25rem;
   border: none;
   border-radius: var(--radius-small);
   background: var(--color-primary);

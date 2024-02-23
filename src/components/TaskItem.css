@@ -32,6 +32,35 @@
   text-decoration: line-through;
 }
 
+/* ===== Priority badge ===== */
+.priority {
+  flex-shrink: 0;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.priority--high {
+  background: var(--color-high-soft);
+  color: var(--color-high);
+}
+
+.priority--medium {
+  background: var(--color-medium-soft);
+  color: var(--color-medium);
+}
+
+.priority--low {
+  background: var(--color-low-soft);
+  color: var(--color-low);
+}
+
+/* A finished task's priority doesn't matter much any more */
+.task--done .priority {
+  opacity: 0.55;
+}
+
 /* ===== Edit and delete buttons ===== */
 .task__action {
   display: grid;
@@ -68,9 +97,20 @@
 
 .task__edit {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
   gap: 0.4rem;
   width: 100%;
+}
+
+/* Phones: the text box on its own row, the rest under it */
+@media (max-width: 480px) {
+  .task__edit {
+    grid-template-columns: 1fr auto auto;
+  }
+
+  .task__edit-input {
+    grid-column: 1 / -1;
+  }
 }
 
 .task__edit-input {
@@ -88,7 +128,7 @@
 
 .task__save,
 .task__cancel {
-  padding: 0 0.8rem;
+  padding: 0.5rem 0.8rem;
   border-radius: var(--radius-small);
   font-size: 0.875rem;
   font-weight: 600;
