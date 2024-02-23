@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import AddTaskForm from "./components/AddTaskForm.jsx";
 import TaskList from "./components/TaskList.jsx";
 import TaskFooter from "./components/TaskFooter.jsx";
@@ -26,6 +26,10 @@ function App() {
   // down (the form, and soon the list) get what they need through props.
   const [tasks, setTasks] = useState([]);
 
+  // The new-task text box, so focus can be sent back there when the list
+  // empties or completed tasks are cleared
+  const newTaskInput = useRef(null);
+
   function addTask(title) {
     // A NEW array with the new task first. React only notices a change if
     // the state is a different array; tasks.push() would change the old
@@ -44,6 +48,10 @@ function App() {
     );
   }
 
+  function editTask(id, title) {
+    setTasks((current) => current.map((task) => (task.id === id ? { ...task, title } : task)));
+  }
+
   function deleteTask(id) {
     // filter() keeps every task EXCEPT this one, in a new array
     setTasks((current) => current.filter((task) => task.id !== id));
@@ -51,6 +59,8 @@ function App() {
 
   function clearCompleted() {
     setTasks((current) => current.filter((task) => !task.done));
+    // The Yes button you pressed is gone: continue from the new-task box
+    newTaskInput.current.focus();
   }
 
   // Worked out from the tasks on every render, never stored
@@ -66,11 +76,17 @@ function App() {
       <main className="todo-card">
         <section className="todo-card__section" aria-label="Add a task">
           {/* Passing a function down: the form calls onAdd, App adds the task */}
-          <AddTaskForm onAdd={addTask} />
+          <AddTaskForm onAdd={addTask} inputRef={newTaskInput} />
         </section>
 
         <section className="todo-card__section" aria-label="Tasks">
-          <TaskList tasks={tasks} onToggle={toggleTask} onDelete={deleteTask} />
+          <TaskList
+            tasks={tasks}
+            onToggle={toggleTask}
+            onEdit={editTask}
+            onDelete={deleteTask}
+            fallbackFocusRef={newTaskInput}
+          />
         </section>
 
         <TaskFooter total={tasks.length} doneCount={doneCount} onClearCompleted={clearCompleted} />

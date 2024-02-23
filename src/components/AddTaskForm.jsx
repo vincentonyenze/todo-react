@@ -8,7 +8,10 @@ export const MAX_TITLE_LENGTH = 120;
 //
 // It doesn't keep a list of tasks: it just tells its parent "add this
 // title" by calling onAdd(title). The parent owns the tasks.
-function AddTaskForm({ onAdd }) {
+//
+// inputRef: the parent can pass a ref to reach the text box, to move focus
+// back here (e.g. after the last task is deleted)
+function AddTaskForm({ onAdd, inputRef }) {
   // A CONTROLLED input: React holds what's typed (in `title`), and the box
   // always shows exactly that. Every key press goes:
   //   type -> onChange -> setTitle(new text) -> React redraws the box
@@ -43,6 +46,7 @@ function AddTaskForm({ onAdd }) {
         New task
       </label>
       <input
+        ref={inputRef}
         id="new-task"
         className="add-form__input"
         placeholder="What needs doing?"
