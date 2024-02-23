@@ -1,0 +1,47 @@
+/* Three buttons joined together, like a switch */
+.filters {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+  background: var(--color-bg);
+}
+
+.filters__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.filters__button:hover {
+  color: var(--color-text);
+}
+
+/* The chosen one. The selector IS the accessibility attribute, so the
+   look and what screen readers hear can never disagree. */
+.filters__button[aria-pressed="true"] {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+}
+
+.filters__count {
+  min-width: 1.4rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.filters__button[aria-pressed="true"] .filters__count {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}

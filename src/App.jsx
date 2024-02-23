@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import AddTaskForm from "./components/AddTaskForm.jsx";
 import TaskList from "./components/TaskList.jsx";
 import TaskFooter from "./components/TaskFooter.jsx";
+import FilterTabs from "./components/FilterTabs.jsx";
+import { countTasks, emptyMessage, filterTasks } from "./filters.js";
 import { SORT_OPTIONS, sortTasks } from "./priorities.js";
 
 // "Tuesday, October 20": today's date, worked out once when the page loads
@@ -31,6 +33,7 @@ function App() {
   // Changing it never touches the tasks: the order on screen is worked
   // out from both on every render (see sortedTasks below).
   const [sortBy, setSortBy] = useState("newest");
+  const [filter, setFilter] = useState("all"); // "all" | "active" | "done"
 
   // The new-task text box, so focus can be sent back there when the list
   // empties or completed tasks are cleared
@@ -44,6 +47,10 @@ function App() {
     // (current) => ... is the "updater" form: React passes in the latest
     // tasks, which is always safe, even if several updates happen at once.
     setTasks((current) => [createTask(title, priority), ...current]);
+    // A new task isn't done, so in the Done view it would vanish the moment
+    // you added it. Show it instead. (Two state updates in one event: React
+    // does them together, in a single redraw.)
+    if (filter === "done") setFilter("all");
   }
 
   function toggleTask(id) {
@@ -71,9 +78,12 @@ function App() {
     newTaskInput.current.focus();
   }
 
-  // Worked out from the tasks on every render, never stored
-  const doneCount = tasks.filter((task) => task.done).length;
-  const sortedTasks = sortTasks(tasks, sortBy);
+  // DERIVED: worked out from state on every render, never stored.
+  //   tasks + filter + sortBy  ->  the tasks you see, in order
+  // If visibleTasks were its own state, every add, tick, edit and delete
+  // would have to update it too, and one day they'd disagree.
+  const counts = countTasks(tasks);
+  const visibleTasks = sortTasks(filterTasks(tasks, filter), sortBy);
 
   return (
     <div className="app">
@@ -89,26 +99,32 @@ function App() {
         </section>
 
         <section className="todo-card__section" aria-label="Tasks">
-          {/* Sorting one task would do nothing, so only show it for two+ */}
-          {tasks.length > 1 && (
+          {tasks.length > 0 && (
             <div className="toolbar">
-              <label htmlFor="sort-by">Sort by</label>
-              <select
-                id="sort-by"
-                className="select"
-                value={sortBy}
-                onChange={(event) => setSortBy(event.target.value)}
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <FilterTabs filter={filter} counts={counts} onChange={setFilter} />
+              {/* Sorting one task would do nothing, so only show it for two+ */}
+              {tasks.length > 1 && (
+                <div className="toolbar__sort">
+                  <label htmlFor="sort-by">Sort by</label>
+                  <select
+                    id="sort-by"
+                    className="select"
+                    value={sortBy}
+                    onChange={(event) => setSortBy(event.target.value)}
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
           <TaskList
-            tasks={sortedTasks}
+            tasks={visibleTasks}
+            empty={emptyMessage(filter, tasks.length)}
             onToggle={toggleTask}
             onEdit={editTask}
             onDelete={deleteTask}
@@ -116,7 +132,7 @@ function App() {
           />
         </section>
 
-        <TaskFooter total={tasks.length} doneCount={doneCount} onClearCompleted={clearCompleted} />
+        <TaskFooter total={counts.all} doneCount={counts.done} onClearCompleted={clearCompleted} />
       </main>
 
       <p className="app__footer">Built with React and Vite</p>
