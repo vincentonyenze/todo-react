@@ -1,10 +1,11 @@
-import { useRef, useState } from "react";
+import { useReducer, useRef, useState } from "react";
 import AddTaskForm from "./components/AddTaskForm.jsx";
 import TaskList from "./components/TaskList.jsx";
 import TaskFooter from "./components/TaskFooter.jsx";
 import FilterTabs from "./components/FilterTabs.jsx";
 import { countTasks, emptyMessage, filterTasks } from "./filters.js";
 import { SORT_OPTIONS, sortTasks } from "./priorities.js";
+import { createTask, tasksReducer } from "./tasksReducer.js";
 
 // "Tuesday, October 20": today's date, worked out once when the page loads
 const today = new Date().toLocaleDateString("en-US", {
@@ -13,25 +14,14 @@ const today = new Date().toLocaleDateString("en-US", {
   day: "numeric",
 });
 
-// A new task. Each one gets a unique id that never changes: it's the
-// React key, and how a task is found to tick it, edit it or delete it.
-function createTask(title, priority) {
-  return {
-    id: crypto.randomUUID(),
-    title,
-    priority,
-    done: false,
-    createdAt: Date.now(),
-  };
-}
-
 function App() {
-  // The tasks live HERE, in the component at the top. Components further
-  // down (the form, and soon the list) get what they need through props.
-  const [tasks, setTasks] = useState([]);
+  // useReducer instead of useState: the same tasks, but every change goes
+  // through tasksReducer. You get back the state and a `dispatch` function
+  // to send it actions.
+  const [tasks, dispatch] = useReducer(tasksReducer, []);
   // HOW to show the tasks is separate state from the tasks themselves.
-  // Changing it never touches the tasks: the order on screen is worked
-  // out from both on every render (see sortedTasks below).
+  // Changing it never touches the tasks: what's on screen is worked out
+  // from all three on every render (see visibleTasks below).
   const [sortBy, setSortBy] = useState("newest");
   const [filter, setFilter] = useState("all"); // "all" | "active" | "done"
 
@@ -39,14 +29,12 @@ function App() {
   // empties or completed tasks are cleared
   const newTaskInput = useRef(null);
 
+  // The handlers are now one line each: say what happened, and let the
+  // reducer work out the new tasks. Things that aren't about the tasks
+  // themselves (the filter, focus) still happen here.
+
   function addTask(title, priority) {
-    // A NEW array with the new task first. React only notices a change if
-    // the state is a different array; tasks.push() would change the old
-    // one in place, and React would never redraw.
-    //
-    // (current) => ... is the "updater" form: React passes in the latest
-    // tasks, which is always safe, even if several updates happen at once.
-    setTasks((current) => [createTask(title, priority), ...current]);
+    dispatch({ type: "added", task: createTask(title, priority) });
     // A new task isn't done, so in the Done view it would vanish the moment
     // you added it. Show it instead. (Two state updates in one event: React
     // does them together, in a single redraw.)
@@ -54,26 +42,19 @@ function App() {
   }
 
   function toggleTask(id) {
-    // map() makes a new array: a NEW object for the task that changed
-    // ({ ...task, done: !task.done }), and the same objects for the rest
-    setTasks((current) =>
-      current.map((task) => (task.id === id ? { ...task, done: !task.done } : task))
-    );
+    dispatch({ type: "toggled", id });
   }
 
-  // changes: the fields to update, e.g. { title: "New", priority: "high" }.
-  // Spreading them after ...task means they win over the old values.
   function editTask(id, changes) {
-    setTasks((current) => current.map((task) => (task.id === id ? { ...task, ...changes } : task)));
+    dispatch({ type: "edited", id, changes });
   }
 
   function deleteTask(id) {
-    // filter() keeps every task EXCEPT this one, in a new array
-    setTasks((current) => current.filter((task) => task.id !== id));
+    dispatch({ type: "deleted", id });
   }
 
   function clearCompleted() {
-    setTasks((current) => current.filter((task) => !task.done));
+    dispatch({ type: "cleared_completed" });
     // The Yes button you pressed is gone: continue from the new-task box
     newTaskInput.current.focus();
   }
