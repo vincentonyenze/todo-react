@@ -1,4 +1,4 @@
-import { useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import AddTaskForm from "./components/AddTaskForm.jsx";
 import TaskList from "./components/TaskList.jsx";
 import TaskFooter from "./components/TaskFooter.jsx";
@@ -6,6 +6,7 @@ import FilterTabs from "./components/FilterTabs.jsx";
 import { countTasks, emptyMessage, filterTasks } from "./filters.js";
 import { SORT_OPTIONS, sortTasks } from "./priorities.js";
 import { createTask, tasksReducer } from "./tasksReducer.js";
+import { loadSort, loadTasks, saveSort, saveTasks } from "./storage.js";
 
 // "Tuesday, October 20": today's date, worked out once when the page loads
 const today = new Date().toLocaleDateString("en-US", {
@@ -18,16 +19,35 @@ function App() {
   // useReducer instead of useState: the same tasks, but every change goes
   // through tasksReducer. You get back the state and a `dispatch` function
   // to send it actions.
-  const [tasks, dispatch] = useReducer(tasksReducer, []);
+  //
+  // The third argument, loadTasks, is a LAZY INITIALISER: React calls it
+  // once, on the first render, to get the starting tasks. Writing
+  // useReducer(tasksReducer, loadTasks()) would also work, but would read
+  // and parse localStorage on EVERY render, then throw the result away.
+  const [tasks, dispatch] = useReducer(tasksReducer, null, loadTasks);
   // HOW to show the tasks is separate state from the tasks themselves.
   // Changing it never touches the tasks: what's on screen is worked out
   // from all three on every render (see visibleTasks below).
-  const [sortBy, setSortBy] = useState("newest");
+  // useState has the same trick: pass the FUNCTION (loadSort), not its
+  // result (loadSort()), and it only runs once
+  const [sortBy, setSortBy] = useState(loadSort);
   const [filter, setFilter] = useState("all"); // "all" | "active" | "done"
 
   // The new-task text box, so focus can be sent back there when the list
   // empties or completed tasks are cleared
   const newTaskInput = useRef(null);
+
+  // SYNCING WITH THE OUTSIDE WORLD. localStorage isn't part of React, so
+  // keeping it up to date is a job for an effect: after every render where
+  // `tasks` changed (added, ticked, edited, deleted...), save them.
+  // One effect covers every kind of change, so no handler can forget to.
+  useEffect(() => {
+    saveTasks(tasks);
+  }, [tasks]);
+
+  useEffect(() => {
+    saveSort(sortBy);
+  }, [sortBy]);
 
   // The handlers are now one line each: say what happened, and let the
   // reducer work out the new tasks. Things that aren't about the tasks
